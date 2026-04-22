@@ -1,3 +1,16 @@
+//version 0.1 alpha
+//versionda eklenenler bakır,demir madenleri, oyuncu ögesi,map
+//gelecek versiyonda yapılması planlanan şeyler renk tasarımları
+//düzeltilmesi gerekenler kelime isimleri türkçeden ingilizceye geçirilecek
+//gameloopu playerdan alınıp game öğesi içerisine atanacak
+//Mine fonksiyonları düzeltilecek oluşturulan minelar bir dize haline getirilip pointer aracılığıyla tutulacak ardından bunun üzerinden ayarlanacak
+//Map sınırsız bir şekilde oluşacak şekilde tasarlanacak
+//info fonksiyonu eklenecek
+//Şu anda her şeyi baştan sona oluşturuyor düzeltcez onu yani entity ögesi scope aralığında sürekli oluşup siliniyor
+//yapılacak bir şeyler bulunacak
+//Kodlar ayıklanıp güzelleştirilip ekranda görüntü olarak düzgün bir çıktı şeklinde verilecek
+// şu anda 25lik bir dizi eğer ki bu dizi boyutu büyütülürse fonksiyonlar düzgün çalışmıyor düzeltilecek
+//ekran yazdırma kısmında bir bug var tam anlamadım düzeltilecek(denemek için ekran boyutunu 10*10 bakır ve de demiri de 20 ye 10 yap)
 #include <iostream>
 #include <string>
 #include <random>
@@ -18,12 +31,12 @@ const int sizeY = 5;
 std::random_device rd;
 std::mt19937 motor(rd());
 std::uniform_int_distribution<int> dagilim{0,4};
-const int max_iron_mine = 2;
-const int max_copper_mine = 4;
+const int max_iron_mine = 4;
+const int max_copper_mine = 2;
 
 
 
- struct Coords{
+struct Coords{
     int x;
     int y;
 };
@@ -31,12 +44,12 @@ const int max_copper_mine = 4;
 
 
 
+
 class Entity
 {
 private:
-    static int s_entity_num;
+static int s_entity_num;
 protected:
-
 
 std::string isim = "Entity";
 const int getEntityNum()//bu fonksiyonu const bir şekilde tanımlama sebebimiz entity ögesi çağırmadan kullanabilelim diye yani
@@ -45,18 +58,20 @@ const int getEntityNum()//bu fonksiyonu const bir şekilde tanımlama sebebimiz 
     return s_entity_num;
 }
 public:
-    char yer_tutucu_isim = 'e';
-    Entity(){
-        print(isim + " öğesi oluşturuldu.");
+
+Coords koordinat;
+char yer_tutucu_isim = 'e';
+Entity(){
+    print(isim + " öğesi oluşturuldu.");
         s_entity_num++;
         
     };
     ~Entity(){
         print(isim + " ögesi yok edildi.");
         s_entity_num --;
-
+        
     };
-
+    
     void print(const std::string& string){
         std::cout << string << std::endl;
     }
@@ -68,7 +83,7 @@ public:
     {
         std::cout << Int << std::endl;
     }
-   
+    
     
 };
 
@@ -81,8 +96,8 @@ class Player : public Entity
 private:
 
 public:
-    int skor;
-    Player(){
+int skor;
+Player(){
         skor = 0;
         std::string gecici_Isim = "Player" +std::to_string(Entity::getEntityNum());
         
@@ -96,11 +111,11 @@ public:
         }
         
         yer_tutucu_isim =  isim[0];
-    
+        
 
     };
     void Move(Game& game, Player& player);
-    void CollectMine(Game& game, Player& player);
+    void CollectMine(Game& oyun, Player& player);
     
 };
 
@@ -122,21 +137,23 @@ class Mine : public Entity
 private:
 
 protected:
-static int s_point_amount;
-    
+int s_point_amount;
+
 public:
 Mine(){
     yer_tutucu_isim = 'M';
 }
-  
+int getPointAmount() {
+    return s_point_amount;
+}
 };
 
 
 
 class CopperMine : public Mine
 {
-private:
-
+    private:
+    
 public:
 CopperMine(){
     yer_tutucu_isim = 'c';
@@ -148,28 +165,14 @@ CopperMine(){
 
 class IronMine : public Mine
 {
-private:
-public:
-IronMine(){
+    private:
+    public:
+    IronMine(){
     yer_tutucu_isim = 'd';
     s_point_amount = 2;
 }
-   
+
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class Game{
@@ -181,20 +184,20 @@ class Game{
     int ikinci_sayi = dagilim(motor);
     
     public:
-    Coords koordinat;
+    
     Player player;
     CopperMine mine;
     IronMine mine2;
     Game(){
-       
-    start_game();
-    place_player(player,koordinat);
+        
+        start_game();
+    place_player(player,player.koordinat);
     place_mine(mine,player);
     place_mine(mine2,player);
     std::cout << "\n\n\n\n";
     print_game();
-
-    }
+    
+}
 
     void reset_game(){
         for (int x = 0; x < rows; x++)
@@ -207,14 +210,14 @@ class Game{
         }
         
     }
-
+    
     void print_game(){
         for (int x = 0; x < rows; x++)
         {
             for (int y = 0; y < cols; y++)
             {
-            
-            
+                
+                
                 if (y==cols - 1)
                 {
                     std::cout << game[x][y]<<std::endl;
@@ -222,20 +225,21 @@ class Game{
                 else{
                     std::cout << game[x][y];
                 }
-            
+                
             }
             
         }
+        std::cout << "Skorunuz:" <<player.skor <<std::endl;
         
     }
-
+    
     void start_game(){
         std::cout << "Oyun başlatılıyor....\n";
         for (int x = 0; x < rows; x++)
         {
             for (int y = 0; y < cols; y++)
             {
-            
+                
                 if (y==cols - 1)
                 {
                     game[x][y]='0';
@@ -248,7 +252,7 @@ class Game{
             }
             
         }
-       
+        
         std::cout << "Oyun başlatıldı. Oyun hakkında bilgi almak için info yazınız.\n";
     }
 
@@ -258,64 +262,66 @@ class Game{
 
     }
     void place_player(Player& player,Coords coords){
-    game[birinci_sayi][ikinci_sayi]=player.yer_tutucu_isim;
-    koordinat.x = birinci_sayi;
-    koordinat.y = ikinci_sayi;
+        game[birinci_sayi][ikinci_sayi]=player.yer_tutucu_isim;
+    player.koordinat.x = birinci_sayi;
+    player.koordinat.y = ikinci_sayi;
 
-    }
+}
 
-    //bu fonksiyon game objesi içerisinde playerı hareket ettirmeye yarıyor
+//bu fonksiyon game objesi içerisinde playerı hareket ettirmeye yarıyor
     void move_player(Player& player,Coords coords,Game& oyun,Coords temp){
         
         Coords old_coords = playercoords(temp);
-        std::cout << "Temp:" << temp.x<<temp.y << std::endl;
-        std::cout << "Coords:" << coords.x<<coords.y << std::endl;
-        std::cout <<"[" <<  old_coords.x << old_coords.y << "]\n";
+        // std::cout << "Temp:" << temp.x<<temp.y << std::endl;
+        // std::cout << "Coords:" << coords.x<<coords.y << std::endl;
+        // std::cout <<"[" <<  old_coords.x << old_coords.y << "]\n";
         oyun.game[old_coords.x][old_coords.y] = '0';
+        CheckMineAndGetPoints(coords);
         oyun.game[coords.x][coords.y] = player.yer_tutucu_isim;
+        
         
 
     }
-
+    
     Coords playercoords(Coords coords){
         return coords;
-
+        
         
     }
     char getCell(int x, int y) const {//birazdan x ve y koordinatlarını alınca kullancaksın bunu
         return game[x][y];}
 
+        
+        void CheckMineAndGetPoints(Coords coords){
+            char cell = game[coords.x][coords.y];
+            CopperMine CopperMineTemp;
+            IronMine IronMineTemp;
+            if (cell == 'c')
+            {
+                player.skor += CopperMineTemp.getPointAmount();
+            }
+            else if (cell == 'd')
+            {
+                player.skor += IronMineTemp.getPointAmount();
+            }
+            
+            
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        }
+    
 
     void place_mine(Mine& mine,Player& player){
-    int yerlesen_mine = 0;
+        int yerlesen_mine = 0;
 
-
-    if (mine.yer_tutucu_isim == 'd')
-    {
-        yerlesen_mine = 0;
-        while (yerlesen_mine<max_iron_mine)
-        {
         
-        int rastgele_X = dagilim(motor);
-        int rastgele_Y = dagilim(motor); 
+        if (mine.yer_tutucu_isim == 'd')
+        {
+            yerlesen_mine = 0;
+            while (yerlesen_mine<max_iron_mine)
+            {
+        
+                int rastgele_X = dagilim(motor);
+                int rastgele_Y = dagilim(motor); 
         if (game[rastgele_X][rastgele_Y]!='0')
         {
             continue;
@@ -326,38 +332,38 @@ class Game{
             yerlesen_mine++;
         }
 
-        }
-
     }
-
-
+    
+    }
+    
+    
     else if(mine.yer_tutucu_isim == 'c'){
-    yerlesen_mine = 0;
+        yerlesen_mine = 0;
     while (yerlesen_mine<max_copper_mine)
-        {
+    {
         
         int rastgele_X = dagilim(motor);
         int rastgele_Y = dagilim(motor); 
         if (game[rastgele_X][rastgele_Y]!='0')
         {
         continue;
-            
-        }
+        
+    }
         else {
             game[rastgele_X][rastgele_Y] = mine.yer_tutucu_isim;
             yerlesen_mine++;
         }
-        }
-
-
-
     }
-    }
+    
+    
+
+}
+}
  
-    
-    
+
+
    
-   
+
 };
 
 
@@ -365,19 +371,20 @@ class Game{
 
 
 //Playerın Puanını ayarlıyor
-void Player::CollectMine(Game& game, Player& player){
-    std::cout << "şimdilik böyle git atcam";
+void Player::CollectMine(Game& oyun, Player& player){
+    
+    
 }
 
 
 
 //bu fonksiyon playerın hareketini sağlıyor.
-    void Player::Move(Game& game,Player& player){
-        char yon;
-        Coords temp;
-        Coords p_koordinat = game.playercoords(game.koordinat);
-        while (true)
-        {
+void Player::Move(Game& game,Player& player){
+    char yon;
+    Coords temp;
+    Coords p_koordinat = game.playercoords(player.koordinat);
+    while (true)
+    {
         
             std::cout << "Gidilecek yönü giriniz:";
             std::cin >> yon;
@@ -388,11 +395,11 @@ void Player::CollectMine(Game& game, Player& player){
                 continue;
             }
             else if(p_koordinat.y == 4 && yon == 'd'){
-            std::cout <<"sağa hareket edilemez. bir daha değer giriniz.\n";
+                std::cout <<"sağa hareket edilemez. bir daha değer giriniz.\n";
                 continue;
             }
             else if(p_koordinat.x == 4 && yon == 's'){
-            std::cout <<"aşağı hareket edilemez. bir daha değer giriniz.\n";
+                std::cout <<"aşağı hareket edilemez. bir daha değer giriniz.\n";
                 continue;
             }else if(p_koordinat.x == 0 && yon == 'w'){
                 std::cout <<"yukarı hareket edilemez. bir daha değer giriniz.\n";
@@ -403,10 +410,11 @@ void Player::CollectMine(Game& game, Player& player){
                 {
                     temp = p_koordinat;
                     p_koordinat.y= p_koordinat.y + 1;
+                    
                     game.move_player(player,game.playercoords(p_koordinat),game,temp);
                     game.print_game();
                     // std::cout << p_koordinat.y;
-
+                    
                 
                 }
                 else if(yon == 'a')
@@ -417,7 +425,7 @@ void Player::CollectMine(Game& game, Player& player){
                     game.print_game();
                     // std::cout << p_koordinat.y;
 
-
+                    
                 }
                 else if(yon == 's')
                 {
@@ -427,37 +435,35 @@ void Player::CollectMine(Game& game, Player& player){
                     game.print_game();
                     // std::cout << p_koordinat.y;
 
-
+                    
 
                 }
                 else if(yon == 'w'){
                     temp = p_koordinat;
                     p_koordinat.x = p_koordinat.x - 1;
-    
+                    
                     game.move_player(player,game.playercoords(p_koordinat),game,temp);
                     game.print_game();
                     // std::cout << p_koordinat.y;
+                    
 
-
-
+                    
                 }
                 
             }
         }
-
+        
     }
+    
+    
+    
 
-
-
-
-
-int Entity::s_entity_num = 0;// şu allahın cezası şeyi tanımla
-int Mine::s_point_amount = 0;
-int main(){
-  
-    Game oyun;
+    int Entity::s_entity_num = 0;// şu allahın cezası şeyi tanımla
+    int main(){
+        
+        Game oyun;
     oyun.player.Move(oyun,oyun.player);
     
     
-
+    
 }
