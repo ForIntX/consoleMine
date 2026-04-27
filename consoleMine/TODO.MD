@@ -9,3 +9,4 @@
 - [ ] **Map System:** Sınırsız (procedural) harita oluşumu tasarımı.
 - [ ] **Cleanup:** Kodların ayıklanması, düzenlenmesi ve konsol çıktısının daha okunaklı hale getirilmesi.
 - [ ] **Brainstorming:** Yeni oyun özellikleri ve içerikleri için fikir geliştirme.
+- [ ] **Refactor Code:** Şu anda kodda her şey game objesine bağlı renderer,engine vs. gibi fonksiyonlar eklenip game objesinin yükünü hafifletmeliyiz.

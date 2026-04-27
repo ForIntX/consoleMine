@@ -1,4 +1,4 @@
-// version alpha 0.1.1
+// version alpha 0.1.2
 
 #include <iostream>
 #include <string>
@@ -13,8 +13,8 @@ const std::string SARI = "\033[33m";
 const std::string MAVI = "\033[34m";
 const std::string RESET = "\033[0m";
 
-const int sizeX = 4;
-const int sizeY = 4;
+const int sizeX = 10;
+const int sizeY = 10;
 const int MapSize = sizeX * sizeY;
 std::random_device rd;
 std::mt19937 motor(rd());
@@ -91,7 +91,7 @@ public:
 
         yer_tutucu_isim = isim[0];
     };
-    void CollectMine(Game &oyun, Player &player);
+    
 };
 
 enum MineStatus
@@ -150,6 +150,7 @@ public:
     {
         yer_tutucu_isim = 'c';
         s_point_amount = 1;
+        
     }
 };
 
@@ -177,20 +178,24 @@ private:
     IronMine *ironmines[max_iron_mine];
     static int s_current_copper_mine;
     static int s_current_iron_mine;
-
+    int current_mine_size;
+    
 protected:
 public:
+    int Temporary_copper_mine;
+    int Temporary_iron_mine;
+
     Mine_struct Mine_array;
     MineManager()
     {
         Mine_array.coppermines = coppermines;
         Mine_array.ironmines = ironmines;
+        current_mine_size = 0;
         Create_mine();
     }
     ~MineManager()
     {
 
-        Delete_all_mines();
     }
     void Create_mine()
     {
@@ -211,47 +216,38 @@ public:
             i++;
         }
     }
-    void Delete_all_mines()
+       void Delete_mine(Mine &mine, int i)
     {
-        int i = 0;
-        std::cout << "Deleting All Mines\n";
-        while (i < MAX_MİNE)
-        {
-            if (s_current_copper_mine > 0)
-            {
-                delete coppermines[s_current_copper_mine];
-                s_current_copper_mine--;
-                coppermines[i] = nullptr;
-
-                i++;
-            }
-            if (s_current_iron_mine > 0)
-            {
-                delete ironmines[s_current_iron_mine];
-                s_current_iron_mine--;
-                ironmines[i]==nullptr;
-                i++;
-            }
-        }
-    }
-    void Delete_mine(Mine &mine, int i)
-    {
+        
         if (mine.yer_tutucu_isim == 'c')
         {
             delete coppermines[i];
             coppermines[i] = nullptr;
+            current_mine_size --;
         }
         if (mine.yer_tutucu_isim == 'd')
         {
             delete ironmines[i];
             ironmines[i] = nullptr;
+            current_mine_size --;
         }
     }
     Mine_struct &getMines()
     {
         return Mine_array;
     }
+  
+   
+    int getCurrentMineSize(){
+        return current_mine_size;
+    }
+    void setCurrentMineSize(int size){
+        current_mine_size = size;
+    }
+    
+    
 };
+
 
 class Game
 {
@@ -261,10 +257,11 @@ private:
     const int &cols = sizeY;
     int birinci_sayi = dagilimX(motor);
     int ikinci_sayi = dagilimY(motor);
+    int move_count = 0;
+
 
 public:
     Player player;
-
     MineManager mineManager;
 
     Game()
@@ -274,6 +271,9 @@ public:
         place_player(player, player.koordinat);
         place_mine(mineManager);
         print_game();
+    }
+    ~Game(){
+        end_game();
     }
 
     void reset_game()
@@ -287,24 +287,66 @@ public:
         }
     }
 
+   
     void print_game()
     {
+        std::cout << "\033[2J\033[1;1H";
+        std::cout << "\n\n";
+        
+        std::cout << "┌";
+        for (int y = 0; y < cols; y++)
+        {
+            std::cout << "───";
+            if (y < cols - 1)
+                std::cout << "┬";
+        }
+        std::cout << "┐\n";
         for (int x = 0; x < rows; x++)
         {
+            std::cout << "│";
             for (int y = 0; y < cols; y++)
             {
-               
                 
-                if (y == cols - 1)
-                {
-                    std::cout << game[x][y] << std::endl;
-                }
-                else
-                {
-                    std::cout << game[x][y];
-                }
+                    std::cout << " " << game[x][y] << " │";
+                
             }
+                std::cout << std::endl;
+            if (x < rows -1 )
+            {   
+                std::cout << "├";
+                for (int y = cols-1; y >= 0; y--)
+                {
+                    if (y!= cols -1 )
+                    {
+                        std::cout << "┼";
+                    }
+                    std::cout << "───";
+
+                    
+                }
+                std::cout << "┤" <<std::endl;
+                
+            }
+            
+            
+            
         }
+
+        std::cout << "└";
+
+         for (int y = cols - 1; y >= 0 ; y--)
+            {
+                if (y != cols - 1)
+                {
+                    std::cout << "┴";
+
+                }
+                std::cout << "───";
+                        
+                
+            }
+            std::cout << "┘" << std::endl;
+
         std::cout << "Skorunuz:" << player.skor << std::endl;
     }
 
@@ -346,6 +388,16 @@ public:
         }
 
         std::cout << "Oyun Başlatıldı.";
+    }
+
+    void end_game(){
+        int temp_iron_mine = IronMine().getPointAmount();
+        int temp_copper_mine = CopperMine().getPointAmount();
+        std::cout << "Tüm madenler toplandı.Toplam maden sayısı:" << mineManager.Temporary_copper_mine + mineManager.Temporary_iron_mine <<std::endl;
+        std::cout << "Elde edilen toplam puan:" << player.skor  << std::endl;
+        std::cout << "Bakır madeninden elde edilen puan:" << mineManager.Temporary_copper_mine * temp_copper_mine << std::endl;
+        std::cout << "Demir madeninden elde edilen puan:" << mineManager.Temporary_iron_mine * temp_iron_mine << std::endl;
+        std::cout << "Toplam hareket sayısı:" << move_count << std::endl;
     }
 
     void Info()
@@ -391,31 +443,36 @@ public:
             {
                 player.skor += mineManager.getMines().coppermines[i]->getPointAmount();
                 mineManager.Delete_mine(*mineManager.getMines().coppermines[i], i);
-                i++;
+            
+                
                 break;
             }
         }
 
         for (int i = 0; i < max_iron_mine; i++)
         {
-            if (mineManager.getMines().ironmines[i] !=nullptr &&mineManager.getMines().ironmines[i]->getCoords().x == coords.x && mineManager.getMines().ironmines[i]->getCoords().y == coords.y)
+            if (mineManager.getMines().ironmines[i] != nullptr && mineManager.getMines().ironmines[i]->getCoords().x == coords.x && mineManager.getMines().ironmines[i]->getCoords().y == coords.y)
             {
                 player.skor += mineManager.getMines().ironmines[i]->getPointAmount();
                 mineManager.Delete_mine(*mineManager.getMines().ironmines[i], i);
-                i++;
+                
+            
                 break;
             }
         }
+    
     }
 
     /// @brief Bir madeni game objesi içerisine ekler ve aynı zamanda o madenin coords değerlerini set eder
     /// @param mineManager
 
-    void place_mine(MineManager &mineManager)
 
+    void place_mine(MineManager &mineManager)
+// bu kodu refaktör et şu anda bu kodda sürekli kod tekrarları var gelecekte eklenecek yeni minelarda bu tekrarlar bize sıkıntı oluşturabilir.
     {
         MineStatus status = Full;
         Coords coords;
+        int mine_size = mineManager.getCurrentMineSize();
         int iron_counter = 0;
         int copper_counter = 0;
         int random_X = dagilimX(motor);
@@ -430,6 +487,8 @@ public:
         {
             temp_iron_mine = MapSize / 8;
         }
+        mineManager.Temporary_copper_mine = temp_copper_mine;
+        mineManager.Temporary_iron_mine = temp_iron_mine;
 
         while (temp_copper_mine > copper_counter)
         {
@@ -442,6 +501,8 @@ public:
                 coords.y = random_Y;
                 current_copper_mine->setCoords(coords);
                 copper_counter++;
+                mine_size++;
+                std::cout << "çalıştı";
             }
             else
             {
@@ -460,6 +521,7 @@ public:
                 coords.y = random_Y;
                 current_iron_mine->setCoords(coords);
                 iron_counter++;
+                mine_size++;
             }
             else
             {
@@ -469,39 +531,57 @@ public:
         }
         for (int i = copper_counter; i < max_copper_mine; i++)
         {
-            mineManager.Delete_mine(*mineManager.getMines().coppermines[i],i);
+            mineManager.Delete_mine(*mineManager.getMines().coppermines[i], i);
         }
         for (int i = iron_counter; i < max_iron_mine; i++)
         {
-            mineManager.Delete_mine(*mineManager.getMines().ironmines[i],i);
+            mineManager.Delete_mine(*mineManager.getMines().ironmines[i], i);
         }
-        
-        
+        mineManager.setCurrentMineSize(mine_size);
+
         std::cout << "demir:" << iron_counter << std::endl;
+        std::cout << "demir: fonksiyonla elde edilen sonuc:" << mineManager.Temporary_iron_mine << std::endl;
         std::cout << "bakir:" << copper_counter << std::endl;
+        std::cout << "bakir: fonksiyonla elde edilen sonuc:" << mineManager.Temporary_copper_mine << std::endl;
+        std::cout << "tüm madenler:" << iron_counter + copper_counter << std::endl;
+        std::cout << "tüm madenler: fonksiyonla elde edilen sonuc:" << mineManager.Temporary_copper_mine + mineManager.Temporary_iron_mine << std::endl;
+
     }
+   
+    int getMoveCounter(){
+        return move_count;
+    }
+    void setMoveCounter(int count){
+        move_count = count;
+    }
+   
     void Move(Player &player);
 };
 
-// Playerın Puanını ayarlıyor
-void Player::CollectMine(Game &oyun, Player &player)
-{
-}
+
 
 // bu fonksiyon playerın hareketini sağlıyor.
 void Game::Move(Player &player)
 {
     char yon;
+    int mine_size = mineManager.getCurrentMineSize();
     Coords temp;
     Coords p_koordinat = this->playercoords(player.koordinat);
-    while (true)
+    while (mine_size > 0)
     {
+    mine_size = mineManager.getCurrentMineSize();
+    if (mine_size == 0)
+    {
+        break;;
+    }
+    
+        std::cout << "mine size:" << mine_size;
+
 
         std::cout << "Gidilecek yönü giriniz:";
-        
+
         std::cin >> yon;
-        
-        
+        move_count++;
 
         if (p_koordinat.y == 0 && yon == 'a')
         {
