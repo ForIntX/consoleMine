@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Oyunu Başlat ve Hata Ayıkla",
+            "type": "cppdbg",
+            "request": "launch",
+            // Programın makefile tarafından üretildiği tam konum:
+            "program": "${workspaceFolder}/output/oyun_dosyasi",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            // Eğer terminal yerine VS Code'un kendi debug konsolunda görmek istersen false kalsın. 
+            // Ayrı bir terminal penceresi açılsın istersen true yapabilirsin.
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "gdb için daha okunaklı yazdırmayı etkinleştir",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // Debug başlamadan önce otomatik olarak 'make' komutunu çalıştırmasını istersen 
+            // aşağıdaki satırı aktif edip bir tasks.json oluşturmalısın.
+            // "preLaunchTask": "build_game" 
+        }
+    ]
+}
